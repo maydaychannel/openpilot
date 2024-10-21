@@ -17,7 +17,13 @@ class CarControllerParams:
     self.STEER_DRIVER_MULTIPLIER = 2
     self.STEER_DRIVER_FACTOR = 1
 
-
+# Steer torque limits for StepperServo
+class SteerLimitParams: #controls running @ 100hz
+  MAX_STEERING_TQ = 5  # Nm (original 12) start quite low value with i30 because the steering is quite light
+  STEER_DELTA_UP = 3 / 100       # 3 Nm/s (10Nm/s original) start quite low value with i30 because the steering is quite light
+  STEER_DELTA_DOWN = 1000 / 100     # 10Nm/sample - no limit
+  STEER_ERROR_MAX = 999     # max delta between torque cmd and torque motor
+  
 class CAR:
   # Hyundai
   ELANTRA = "HYUNDAI ELANTRA LIMITED ULTIMATE 2017"
@@ -33,6 +39,7 @@ class CAR:
   SONATA_LF = "HYUNDAI SONATA 2019"
   PALISADE = "HYUNDAI PALISADE 2020"
   VELOSTER = "HYUNDAI VELOSTER 2019"
+  I30 = "HYUNDAI I30 GD 2014"
 
   # Kia
   KIA_FORTE = "KIA FORTE E 2018 & GT 2021"
@@ -154,7 +161,10 @@ FINGERPRINTS = {
   }],
   CAR.VELOSTER: [{
     64: 8, 66: 8, 67: 8, 68: 8, 127: 8, 128: 8, 129: 8, 273: 8, 274: 8, 275: 8, 339: 8, 354: 3, 356: 4, 399: 8, 512: 6, 544: 8, 558: 8, 593: 8, 608: 8, 688: 5, 790: 8, 809: 8, 832: 8, 884: 8, 897: 8, 899: 8, 902: 8, 903: 8, 905: 8, 909: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1170: 8, 1181: 5, 1186: 2, 1191: 2, 1265: 4, 1280: 1, 1282: 4, 1287: 4, 1290: 8, 1292: 8, 1294: 8, 1312: 8, 1322: 8, 1342: 6, 1345: 8, 1348: 8, 1349: 8, 1351: 8, 1353: 8, 1356: 8, 1363: 8, 1365: 8, 1366: 8, 1367: 8, 1369: 8, 1378: 4, 1407: 8, 1414: 3, 1415: 8, 1419: 8, 1427: 6, 1440: 8, 1456: 4, 1470: 8, 1486: 8, 1487: 8, 1491: 8, 1530: 8, 1532: 5, 1872: 8, 1988: 8, 1996: 8, 2000: 8, 2001: 8, 2004: 8, 2008: 8, 2009: 8, 2012: 8, 2015: 8, 2016: 8, 2017: 8, 2024: 8, 2025: 8
-  }]
+  }],
+   CAR.I30: [{
+    64: 8
+  }] 
 }
 
 ECU_FINGERPRINT = {
@@ -423,6 +433,7 @@ DBC = {
   CAR.SONATA_LF: dbc_dict('hyundai_kia_generic', None),
   CAR.PALISADE: dbc_dict('hyundai_kia_generic', None),
   CAR.VELOSTER: dbc_dict('hyundai_kia_generic', None),
+  CAR.I30: dbc_dict('hyundai_i30_2014.dbc', 'hyundai_kia_generic'),
 }
 
 STEER_THRESHOLD = 150

@@ -176,7 +176,7 @@ def get_car(logcan, sendcan, has_relay=False):
 
   if candidate is None:
     cloudlog.warning("car doesn't match any fingerprints: %r", fingerprints)
-    candidate = "OLD_CAR"
+    candidate = "mock"   # If want hardcode the car to be recocnized for certain make/model, do it here
     print("canditate is not None")
 
   CarInterface, CarController, CarState = interfaces[candidate]

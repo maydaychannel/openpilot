@@ -137,14 +137,14 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15.3   # This is updated for i30
       tire_stiffness_factor = 0.385   # Copied from Elantra GT
       ret.mass = 1193   # This is updated for i30
-      ret.longitudinalTuning.kpBP = [0., 15., 22.]
-      ret.longitudinalTuning.kiBP = [0., 15., 22.]
-      ret.gasMaxBP = [0., 5., 12., 25.]
-      ret.gasMaxV = [0.5, 0.6, 0.8, 1.0]
+      #ret.longitudinalTuning.kpBP = [0., 15., 22.]	# Try to solve longitudinal PID controller interpolation out of bounds issue with commenting these out
+      #ret.longitudinalTuning.kiBP = [0., 15., 22.]
+      #ret.gasMaxBP = [0., 5., 12., 25.]
+      #ret.gasMaxV = [0.5, 0.6, 0.8, 1.0]
       #+      ret.gasMaxV = [0.1, 0.4, 0.8]
 
-      ret.longitudinalTuning.deadzoneBP = [0.]
-      ret.longitudinalTuning.deadzoneV = [0.]
+      #ret.longitudinalTuning.deadzoneBP = [0.]
+      #ret.longitudinalTuning.deadzoneV = [0.]
 
       ret.enableGasInterceptor = False # My implementation does not use GasInterceptor at least yet
 
@@ -153,12 +153,13 @@ class CarInterface(CarInterfaceBase):
         ret.longitudinalTuning.kiV = [0.2, 0.35, 0.5]
 
       ret.lateralTuning.init('pid')
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # Not compatible wo sshanes mod
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
-      # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 1]]     # First test
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.003], [0.3, .4]]     # Test halfish of kpV
+      #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]     # Use this without sshanes mods
+      #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]     # Use this without sshanes mods
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.005], [0.8, 1.2]]     # Not compatible wo sshanes mod
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.01], [0.5, 1]]    # Test non-zero intergale
-      ret.lateralTuning.pid.kf = 0.0002
+      ret.lateralTuning.pid.kf = 0.001
       ret.steerMaxBP = [0.]
       #ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
       ret.maxSteeringAngleDeg = 500   # This is stupid amount, but I don't know why it should be limited either

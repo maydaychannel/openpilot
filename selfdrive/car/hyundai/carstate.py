@@ -16,10 +16,10 @@ class CarState(CarStateBase):
 
     ret.seatbeltUnlatched = cp.vl["CLU2"]['CF_Clu_DrvSeatBeltSw'] == 1
 
-    ret.wheelSpeeds.fl = cp.vl["WHL_SPD11"]['WHL_SPD_FL'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fr = cp.vl["WHL_SPD11"]['WHL_SPD_FR'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = cp.vl["WHL_SPD11"]['WHL_SPD_RL'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rr = cp.vl["WHL_SPD11"]['WHL_SPD_RR'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fl = cp.vl["TCS5"]['WHEEL_FL'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fr = cp.vl["TCS5"]['WHEEL_FR'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = cp.vl["TCS5"]['WHEEL_RL'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rr = cp.vl["TCS5"]['WHEEL_RR'] * CV.KPH_TO_MS
     ret.vEgoRaw = (ret.wheelSpeeds.fl + ret.wheelSpeeds.fr + ret.wheelSpeeds.rl + ret.wheelSpeeds.rr) / 4.
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
 
@@ -40,7 +40,8 @@ class CarState(CarStateBase):
     else:
       ret.steeringTorque = 0
 
-    ret.steeringTorqueEps = cp.vl["VSM2"]['CR_Mdps_OutTq']
+    #ret.steeringTorqueEps = cp.vl["VSM2"]['CR_Mdps_OutTq']
+    ret.steeringTorqueEps = cp_cam.vl["STEERING_STATUS"]['STEERING_TORQUE']
     #ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     ret.steerWarning = False
 
@@ -83,7 +84,7 @@ class CarState(CarStateBase):
     ret.gas = cp.vl["EMS_DCT1"]['PV_AV_CAN']
     ret.gasPressed = cp.vl["EMS6"]['CF_Ems_AclAct'] > 0.05
 
-    ret.gearShifter = GearShifter.drive		# Force D-gear because my car is manual
+    ret.gearShifter = GearShifter.reverse if cp.vl["CLU2"]['CF_Clu_SwiGearR'] else GearShifter.drive	# Force D-gear otherwise because my car is manual
 
     # # TODO: refactor gear parsing in function
     # # Gear Selection via Cluster - For those Kia/Hyundai which are not fully discovered, we can use the Cluster Indicator for Gear Selection,
@@ -154,13 +155,29 @@ class CarState(CarStateBase):
     # save the entire LKAS11 and CLU11
     #self.lkas11 = copy.copy(cp_cam.vl["LKAS11"])
     #self.clu11 = copy.copy(cp.vl["CLU11"])
+#    self.clu11 = 0
+    self.clu11 = {
+      "CF_Clu_CruiseSwState": 3,  # Example state of cruise switch (range 0-7)
+      "CF_Clu_CruiseSwMain": 1,   # Cruise switch main is active (0 or 1)
+      "CF_Clu_SldMainSW": 0,      # SLD main switch inactive (0 or 1)
+      "CF_Clu_ParityBit1": 1,     # Parity bit set (0 or 1)
+      "CF_Clu_VanzDecimal": 0.125, # Vehicle speed decimal part (range 0.0-0.375)
+      "CF_Clu_Vanz": 100,         # Vehicle speed (km/h, range 0-255.5)
+      "CF_Clu_SPEED_UNIT": 0,     # Speed unit is km/h (0 for km/h, 1 for MPH)
+      "CF_Clu_DetentOut": 1,      # Detent output active (0 or 1)
+      "CF_Clu_RheostatLevel": 15, # Rheostat level (range 0-31)
+      "CF_Clu_CluInfo": 0,        # CluInfo is inactive (0 or 1)
+      "CF_Clu_AmpInfo": 0,        # AmpInfo is inactive (0 or 1)
+      "CF_Clu_AliveCnt1": 5       # Alive counter (range 0-15)
+    }
+
     #self.park_brake = cp.vl["TCS13"]['PBRAKE_ACT'] == 1
     #self.steer_state = cp.vl["MDPS12"]['CF_Mdps_ToiActive']  # 0 NOT ACTIVE, 1 ACTIVE
     #self.lead_distance = cp.vl["SCC11"]['ACC_ObjDist']
     #self.brake_hold = cp.vl["TCS15"]['AVH_LAMP'] == 2 # 0 OFF, 1 ERROR, 2 ACTIVE, 3 READY
     #self.brake_error = cp.vl["TCS13"]['ACCEnable'] != 0 # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
     self.prev_cruise_buttons = self.cruise_buttons
-    self.cruise_buttons = cp.vl["CLU11"]["CF_Clu_CruiseSwState"]
+    self.cruise_buttons = cp.vl["CLU1"]["CF_Clu_CruiseSwState"]
 
     return ret
 
@@ -182,13 +199,14 @@ class CarState(CarStateBase):
 #      ("CF_Gway_RRDrSw", "CGW2", 0),        # Rear right door
       ("CF_Clu_TurnSigLh", "CLU2", 0),        #Imported from i30
       ("CF_Clu_TurnSigRh", "CLU2", 0),        #Imported from i30
+      ("CF_Clu_SwiGearR", "CLU2", 0),        #Imported from i30
       #("CF_Gway_ParkBrakeSw", "CGW1", 0),
 
       ("CF_Clu_CruiseSwState", "CLU1", 0),
       ("CF_Clu_CruiseSwMain", "CLU1", 0),
       ("CF_Clu_SldMainSW", "CLU1", 0),
       ("CF_Clu_ParityBit1", "CLU1", 0),
-      ("CF_Clu_VanzDecimal" , "CL1", 0),
+      ("CF_Clu_VanzDecimal" , "CLU1", 0),
       ("CF_Clu_Vanz", "CLU1", 0),
       ("CF_Clu_SPEED_UNIT", "CLU1", 0),
       ("CF_Clu_DetentOut", "CLU3", 0),
@@ -197,12 +215,17 @@ class CarState(CarStateBase):
       #("CF_Clu_AmpInfo", "CLU11", 0),
       #("CF_Clu_AliveCnt1", "CLU11", 0),
 
+      ("CRUISE_LAMP_M", "EMS6", 0),
+      ("CRUISE_LAMP_S", "EMS6", 0),
+
       # ("ACCEnable", "TCS13", 0),
       # ("ACC_REQ", "TCS13", 0),
       # ("BrakeLight", "TCS13", 0),
       # ("DriverBraking", "TCS13", 0),
       # ("StandStill", "TCS13", 0),
       # ("PBRAKE_ACT", "TCS13", 0),
+      ("BRAKE_ACT", "EMS2", 0),
+      ("BRAKE_ACT", "EMS_DCT2", 0),
 
       # ("ESC_Off_Step", "TCS15", 0),
       # ("AVH_LAMP", "TCS15", 0),

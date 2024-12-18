@@ -51,8 +51,8 @@ def register(spinner=None):
   needs_registration = needs_registration or dongle_id is None
 
   if needs_registration:
-    if spinner is not None:
-      spinner.update("registering device")
+    if True:
+      return "UnofficialDevice"
 
     # Create registration token, in the future, this key will make JWTs directly
     private_key = open(PERSIST+"/comma/id_rsa").read()

@@ -461,7 +461,7 @@ class CarInterface(CarInterfaceBase):
     ret.enableGasInterceptor = False
 
     # if the smartDSU is detected, openpilot can send ACC_CMD (and the smartDSU will block it from the DSU) or not (the DSU is "connected")
-    ret.openpilotLongitudinalControl = (candidate == CAR.OLD_CAR) or (ret.enableCamera and (smartDsu or ret.enableDsu or candidate in TSS2_CAR))
+    ret.openpilotLongitudinalControl = False
     cloudlog.warning("ECU Camera Simulated: %r", ret.enableCamera)
     cloudlog.warning("ECU DSU Simulated: %r", ret.enableDsu)
     cloudlog.warning("ECU Gas Interceptor: %r", ret.enableGasInterceptor)

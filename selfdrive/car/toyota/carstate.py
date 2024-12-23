@@ -34,18 +34,24 @@ class CarState(CarStateBase):
     ret.standstill = ret.vEgoRaw < 0.01    #Changed this from 0.001 to 0.1 to 0.01 bc longcontrol.py uses this to detect when car is stopped
 
     if self.CP.carFingerprint == CAR.OLD_CAR: # STILL NEED TO CHECK THIS, AND STEERINGRATE
-      ret.steeringAngleDeg = -(cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE'])
-    
+      if cp.vl['STEERING_EPS_DATA']['STEER_ANGLE'] == 0:
+        ret.steeringAngleDeg = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE'])
+      else:
+        ret.steeringAngleDeg = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE'])
+    else:
+      ret.steeringAngleDeg = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE'])
     if self.CP.carFingerprint == CAR.OLD_CAR: # Steering rate sensor is code differently on CIVIC
       if cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE_RATE'] == 0:
+        ret.steeringRateDeg = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE_RATE'])
+      else:
         ret.steeringRateDeg = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE_RATE'])
 
     
     #ret.leftBlinker = cp.vl["SCM_FEEDBACK"]['LEFT_BLINKER']
     #ret.rightBlinker = cp.vl["SCM_FEEDBACK"]['RIGHT_BLINKER']
-
+    #### steeringtorque and eps probably not necessary
     ret.steeringTorque = cp.vl["STEERING_STATUS"]['STEERING_TORQUE']
-    ret.steeringTorqueEps = cp.vl["STEERING_STATUS"]['STEERING_TORQUE']
+    # ret.steeringTorqueEps = cp.vl["STEERING_STATUS"]['STEERING_TORQUE']
     # we could use the override bit from dbc, but it's triggered at too high torque values
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     ret.steerWarning = False

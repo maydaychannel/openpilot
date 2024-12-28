@@ -16,7 +16,7 @@ def calc_steering_torque_hold(angle, vEgo):
     # Interpolate the value based on the angle
     output = interp(angle, hold_BP, hold_V)
     # Factor the output by given value, to test if these are too agressive for i30
-    return output * 1.  # Factor the output
+    return output * .5  # Factor the output
 
 SAMPLING_FREQ = 100 #Hz
 
@@ -123,7 +123,7 @@ class CarController():
     if enabled:
       # windup slower
       if (self.last_target_angle_lim * target_angle_lim) > 0. and abs(target_angle_lim) > abs(self.last_target_angle_lim): #todo revise last_angle
-        angle_rate_max = interp(CS.out.vEgo, ANGLE_RATE_BP, ANGLE_RATE_WINDUP) 
+        angle_rate_max = interp(CS.out.vEgo, ANGLE_RATE_BP, ANGLE_RATE_WINDUP)
       else:
         angle_rate_max = interp(CS.out.vEgo, ANGLE_RATE_BP, ANGLE_RATE_UNWIND)
 
@@ -151,23 +151,25 @@ class CarController():
 
       # add feed-forward and inertia compensation
       feedforward = calc_steering_torque_hold(target_angle_lim, CS.out.vEgo)
-      steer_tq = feedforward + actuators.steer + self.inertia_tq
+      steer_tq_factored = actuators.steer * 5
+      steer_tq = feedforward + steer_tq_factored + self.inertia_tq
+      #steer_tq = feedforward + actuators.steer + self.inertia_tq
       # explicitly clip torque before sending on CAN
       steer_tq = clip(steer_tq, -SteerLimitParams.MAX_STEERING_TQ, SteerLimitParams.MAX_STEERING_TQ)
-      self.steer_tq_r = steer_tq * (-1)    # Switch StepperServo rotation
-      #self.steer_tq_r = steer_tq * (1)    # Non-switch StepperServo rotation
+      #self.steer_tq_r = steer_tq * (-1)    # Switch StepperServo rotation
+      self.steer_tq_r = steer_tq * (1)    # Non-switch StepperServo rotation
 
       # can_sends.append(create_new_steer_command(self.packer, apply_steer_req, self.target_angle_delta, self.steer_tq_r, frame))
       # *** control msgs ***
       if (frame % 10) == 0: #slow print
-        print("Actuators.steer {0} Inertia {1} Feedforward {2}, steer_tq_r {3}".format(actuators.steer,
-                                                                 self.inertia_tq,
+        print("Actuators.steer {0} steer_tq_factored {1} Feedforward {2}, steer_tq_r {3}".format(actuators.steer,
+                                                                 steer_tq_factored,
                                                                  feedforward, self.steer_tq_r))
     elif not enabled and self.last_controls_enabled: #falling edge - send cancel CAN message
       self.target_angle_delta = 0
       steer_tq = 0
       self.steer_tq_r = 0
-      can_sends.append(create_new_steer_command(self.packer, apply_steer_req, self.target_angle_delta, self.steer_tq_r, frame)) 
+      can_sends.append(create_new_steer_command(self.packer, apply_steer_req, self.target_angle_delta, self.steer_tq_r, frame))
 
       # if (frame % 100) == 0: #slow print when disabled
       #   print("SteerAngle {0} SteerSpeed {1}".format(CS.out.steeringAngleDeg,

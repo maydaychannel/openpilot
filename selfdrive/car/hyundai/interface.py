@@ -22,8 +22,9 @@ class CarInterface(CarInterfaceBase):
     # Most Hyundai car ports are community features for now
     ret.communityFeature = candidate not in [CAR.SONATA, CAR.PALISADE]
 
-    ret.steerActuatorDelay = 0.0  # Original delay 0.1
-    ret.steerRateCost = 1.0       # Original cost 0.5
+    # i30 GD has a 0.1 degree APS accuracy
+    ret.steerActuatorDelay = 0.2  # Original delay 0.1
+    ret.steerRateCost = 1.       # Original cost 0.5
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 1.
 
@@ -153,13 +154,11 @@ class CarInterface(CarInterfaceBase):
         ret.longitudinalTuning.kiV = [0.2, 0.35, 0.5]
 
       ret.lateralTuning.init('pid')
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # Not compatible wo sshanes mod
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # [20, 108] km/h
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
-      #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]     # Use this without sshanes mods
-      #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]     # Use this without sshanes mods
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.005], [0.8, 1.2]]     # Not compatible wo sshanes mod
-      # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.01], [0.5, 1]]    # Test non-zero intergale
-      ret.lateralTuning.pid.kf = 0.001
+      # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.001], [0.8, 1.2]]     # Original with dzid FF
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.005], [0.2, 0.25]]    # Test
+      ret.lateralTuning.pid.kf = 0.0007
       ret.steerMaxBP = [0.]
       #ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
       ret.maxSteeringAngleDeg = 500   # This is stupid amount, but I don't know why it should be limited either

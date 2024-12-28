@@ -16,7 +16,7 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
 
     ret.carName = "hyundai"
-    ret.safetyModel = car.CarParams.SafetyModel.allOutput
+    ret.safetyModel = car.CarParams.SafetyModel.hyundai
     ret.radarOffCan = True
 
     # Most Hyundai car ports are community features for now

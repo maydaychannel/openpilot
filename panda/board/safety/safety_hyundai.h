@@ -21,15 +21,12 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 // TODO: missing checksum for wheel speeds message,worst failure case is
 //       wheel speeds stuck at 0 and we don't disengage on brake press
 AddrCheckStruct hyundai_rx_checks[] = {
-  {.msg = {{0x081, 0, 8, .check_checksum = false, .expected_timestep = 12000U}}},   // EMS_DCT2
-  {.msg = {{0x165, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},   // VSM2
-  {.msg = {{0x1F1, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},   // TCS5
-  {.msg = {{0x260, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},   // EMS6
-  {.msg = {{0x2B0, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},   // SAS1
-  // {.msg = {{608, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U}}},
-  // {.msg = {{902, 0, 8, .check_checksum = false, .max_counter = 15U, .expected_timestep = 10000U}}},
-  // {.msg = {{916, 0, 8, .check_checksum = true, .max_counter = 7U, .expected_timestep = 10000U}}},
-  // {.msg = {{1057, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}}},
+  {.msg = {{0x081, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // EMS_DCT2 (129)
+  {.msg = {{0x165, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // VSM2 (357)
+  {.msg = {{0x1F1, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},                      // TCS5 (497)
+  {.msg = {{0x260, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 12000U}}},    // EMS6 (260)
+  {.msg = {{0x2B0, 0, 5, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // SAS1 (688)
+  {.msg = {{0x22F, 2, 8, .check_checksum = false, .max_counter = 15U, .expected_timestep = 10000U}}},  // SSC (559)
 };
 const int HYUNDAI_RX_CHECK_LEN = sizeof(hyundai_rx_checks) / sizeof(hyundai_rx_checks[0]);
 
@@ -49,8 +46,16 @@ static uint8_t hyundai_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t cnt;
-  if (addr == 608) {
+  if (addr == 129) {
+    cnt = GET_BYTE(to_push, 7) & 0xF;
+  } else if (addr == 357) {
+    cnt = GET_BYTE(to_push, 6) & 0xF;
+  } else if (addr == 559) {
+    cnt = GET_BYTE(to_push, 1) & 0xF;
+  } else if (addr == 608) {
     cnt = (GET_BYTE(to_push, 7) >> 4) & 0x3;
+  } else if (addr == 688) {
+    cnt = GET_BYTE(to_push, 4) & 0xF;
   } else if (addr == 902) {
     cnt = ((GET_BYTE(to_push, 3) >> 6) << 2) | (GET_BYTE(to_push, 1) >> 6);
   } else if (addr == 916) {
@@ -67,8 +72,16 @@ static uint8_t hyundai_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t chksum;
-  if (addr == 608) {
+  if (addr == 129) {
+    chksum = (GET_BYTE(to_push, 7) >> 4) & 0xF;
+  } else if (addr == 357) {
+    chksum = GET_BYTE(to_push, 7);
+  } else if (addr == 559) {
+    chksum = GET_BYTE(to_push, 0);
+  } else if (addr == 608) {
     chksum = GET_BYTE(to_push, 7) & 0xF;
+  } else if (addr == 688) {
+    chksum = (GET_BYTE(to_push, 4) >> 4) & 0xF;
   } else if (addr == 916) {
     chksum = GET_BYTE(to_push, 6) & 0xF;
   } else if (addr == 1057) {
@@ -79,19 +92,74 @@ static uint8_t hyundai_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   return chksum;
 }
 
+//static uint8_t hyundai_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+//  int addr = GET_ADDR(to_push);
+
+//  uint8_t chksum = 0;
+  // same algorithm, but checksum is in a different place
+//  for (int i = 0; i < 8; i++) {
+//    uint8_t b = GET_BYTE(to_push, i);
+//    if (((addr == 608) && (i == 7)) || ((addr == 916) && (i == 6)) || ((addr == 129) && (i == 7))) {
+//      // b &= (addr == 1057) ? 0x0FU : 0xF0U; // remove checksum
+//      b &= (addr == 129) ? 0x0FU : 0xF0U; // remove checksum
+//    }
+//    chksum += (b % 16U) + (b / 16U);
+//  }
+//  return (16U - (chksum %  16U)) % 16U;
+//}
+
 static uint8_t hyundai_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
-
   uint8_t chksum = 0;
-  // same algorithm, but checksum is in a different place
-  for (int i = 0; i < 8; i++) {
-    uint8_t b = GET_BYTE(to_push, i);
-    if (((addr == 608) && (i == 7)) || ((addr == 916) && (i == 6)) || ((addr == 1057) && (i == 7))) {
-      b &= (addr == 1057) ? 0x0FU : 0xF0U; // remove checksum
+  uint8_t data_length = 8;
+
+  if (addr == 357 || addr == 688) {
+    data_length = (addr == 688) ? 5 : 7;
+    // Use XOR checksum algorithm on the first 7 bytes for 357 and 5 bytes for 688
+    for (int i = 0; i < data_length; i++) {
+      uint8_t b = GET_BYTE(to_push, i);
+      // Remove checksum nibble based on address and byte position
+      if (addr == 688 && i == 4) {
+        b &= 0x0FU;  // Mask checksum byte
+      }
+      chksum ^= b;
     }
-    chksum += (b % 16U) + (b / 16U);
+    if (addr == 688) {
+      //chksum &= 0x0FU;
+      chksum = (chksum & 0x0F) ^ (chksum >> 4);
+    }
+  } else if (addr == 559) {
+    uint16_t ssc_chksum = addr;
+    data_length = 7;
+    // 0 byte is the checksum
+    for (int i = 1; i < data_length; i++) {
+      uint8_t b = GET_BYTE(to_push, i);
+      ssc_chksum += b;
+    }
+    // Add upper and lower bytes of the checksum
+    ssc_chksum = (ssc_chksum & 0xFF) + (ssc_chksum >> 8);
+
+    // Mask to keep only the lower 8 bits
+    chksum = ssc_chksum & 0xFF;
+  } else {
+    // Standard checksum algorithm for addresses 608, 916, and 129
+    for (int i = 0; i < data_length; i++) {
+      uint8_t b = GET_BYTE(to_push, i);
+
+      // Remove checksum nibble based on address and byte position
+      if ((addr == 608 && i == 7) || (addr == 129 && i == 7)) {
+        b &= (addr == 129) ? 0x0FU : 0xF0U;  // Mask checksum byte
+      }
+
+      // Sum the nibbles (4-bit parts of the byte)
+      chksum += (b % 16U) + (b / 16U);
+    }
+
+    // Final checksum calculation with modulo 16 for other addresses
+    chksum = (16U - (chksum % 16U)) % 16U;
   }
-  return (16U - (chksum %  16U)) % 16U;
+
+  return chksum;
 }
 
 static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {

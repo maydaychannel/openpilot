@@ -102,6 +102,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     startupOneplus @82;
     processNotRunning @95;
     steeringDegDiverged @96;
+    driverIntervention @97;
 
     radarCanErrorDEPRECATED @15;
     radarCommIssueDEPRECATED @67;
@@ -157,6 +158,7 @@ struct CarState {
   steeringTorqueEps @27 :Float32;  # TODO: standardize units
   steeringPressed @9 :Bool;        # if the user is using the steering wheel
   steeringRateLimited @29 :Bool;   # if the torque is limited by the rate limiter
+  steeringTqDiff @41 :Float32;     # SSC - factored i30 EPS torque sensor reading
   steerWarning @35 :Bool;          # temporary steer unavailble
   steerError @36 :Bool;            # permanent steer error
   stockAeb @30 :Bool;

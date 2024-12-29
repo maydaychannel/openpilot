@@ -22,6 +22,9 @@ class CarState(CarStateBase):
     self.min_error = 0.0
     self.max_error = 0.0
 
+    # Initialize a list to hold the last 10 values for moving average
+    self.steeringTorqueHistory = []
+
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
@@ -43,15 +46,6 @@ class CarState(CarStateBase):
     ret.yawRate = cp.vl["ESP2"]['YAW_RATE']
     ret.leftBlinker, ret.rightBlinker = self.update_blinker(50, cp.vl["CLU2"]['CF_Clu_TurnSigLh'],
                                                             cp.vl["CLU2"]['CF_Clu_TurnSigRh'])
-
-    # emulate driver steering torque - allows lane change assist on blinker hold
-    ret.steeringPressed = ret.gasPressed # E-series doesn't have torque sensor, so lightly pressing the gas indicates driver intention
-    if ret.steeringPressed and ret.leftBlinker:
-      ret.steeringTorque = 1
-    elif ret.steeringPressed and  ret.rightBlinker:
-      ret.steeringTorque = -1
-    else:
-      ret.steeringTorque = 0
 
     #ret.steeringTorqueEps = cp.vl["VSM2"]['CR_Mdps_OutTq']
     ret.steeringTorqueEps = cp_cam.vl["STEERING_STATUS"]['STEERING_TORQUE']
@@ -77,6 +71,28 @@ class CarState(CarStateBase):
           self.min_error = min(self.min_error, ret.steeringAngleDegError)
 
         ret.steeringAngleDegDivergence = self.max_error - self.min_error
+
+
+    # Append the current steeringTorqueEps to the history for moving average
+    #self.steeringTorqueHistory.append(ret.steeringTorqueEps)
+
+    if cp.vl["EMS6"]['CRUISE_LAMP_S'] == 1:
+      self.steeringTorqueHistory.append(ret.steeringTorqueEps)
+    else:
+      self.steeringTorqueHistory.append(-cp.vl["VSM2"]['CR_Mdps_StrTq'] * 2.4)
+
+    # Ensure we only keep the last 10 values
+    if len(self.steeringTorqueHistory) > 10:
+        self.steeringTorqueHistory.pop(0)
+
+    # Compute the moving average
+    if len(self.steeringTorqueHistory) == 10:
+        avg_steeringTorqueEps = sum(self.steeringTorqueHistory) / 10
+    else:
+        avg_steeringTorqueEps = ret.steeringTorqueEps  # If less than 10, use the raw value
+
+    # Calculate the difference using the moving average
+    ret.steeringTqDiff = avg_steeringTorqueEps - (-cp.vl["VSM2"]['CR_Mdps_StrTq'] * 2.4)
 
     # cruise state
     # if self.CP.openpilotLongitudinalControl:
@@ -118,6 +134,15 @@ class CarState(CarStateBase):
     ret.gasPressed = cp.vl["EMS6"]['CF_Ems_AclAct'] > 0.05
 
     ret.gearShifter = GearShifter.reverse if cp.vl["CLU2"]['CF_Clu_SwiGearR'] else GearShifter.drive	# Force D-gear otherwise because my car is manual
+
+    # emulate driver steering torque - allows lane change assist on blinker hold
+    ret.steeringPressed = ret.gasPressed # i30 doesn't have good driver intervention detection yet, so lightly pressing the gas indicates driver intention
+    if ret.steeringPressed and ret.leftBlinker:
+      ret.steeringTorque = 1
+    elif ret.steeringPressed and  ret.rightBlinker:
+      ret.steeringTorque = -1
+    else:
+      ret.steeringTorque = 0
 
     # # TODO: refactor gear parsing in function
     # # Gear Selection via Cluster - For those Kia/Hyundai which are not fully discovered, we can use the Cluster Indicator for Gear Selection,

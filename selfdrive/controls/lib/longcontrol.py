@@ -20,12 +20,9 @@ GdMAX_OUT = [0.002, 0.002, 0.005, 0.01, 0.02]
 BRAKE_STOPPING_TARGET = 0.5  # apply at least this amount of brake to maintain the vehicle stationary
 
 RATE = 100.0
-
-lead_car = 0
-
 def long_control_state_trans(active, long_control_state, v_ego, v_target, v_pid,
                              output_gb, brake_pressed, cruise_standstill, min_speed_can,
-                             dRel, lead_car):
+                             dRel):
   """Update longitudinal control state machine"""
   stopping_target_speed = min_speed_can + STOPPING_TARGET_SPEED_OFFSET
 #  stopping_condition = (v_ego < 3.0) or \    #This doesn't work, itll stop but starting is not so good

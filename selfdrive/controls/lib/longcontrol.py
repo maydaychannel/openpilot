@@ -21,6 +21,7 @@ BRAKE_STOPPING_TARGET = 0.5  # apply at least this amount of brake to maintain t
 
 RATE = 100.0
 
+lead_car = 0
 
 def long_control_state_trans(active, long_control_state, v_ego, v_target, v_pid,
                              output_gb, brake_pressed, cruise_standstill, min_speed_can,

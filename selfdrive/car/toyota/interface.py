@@ -9,7 +9,6 @@ from common.op_params import opParams
 
 EventName = car.CarEvent.EventName
 
-
 # certian driver intervention can be distinguished from road disturbance by estimating limits for natural motion due to centering
 def detect_stepper_override(steerCmd, steerAct, vEgo, centering_ceoff, SteerFrictionTq):
   # when steering released (or lost steps), what angle will it return to

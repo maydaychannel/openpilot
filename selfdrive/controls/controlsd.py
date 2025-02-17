@@ -29,7 +29,7 @@ LON_MPC_STEP = 0.2
 SIMULATION = "SIMULATION" in os.environ
 NOSENSOR = "NOSENSOR" in os.environ
 
-ThermalStatus = log.ThermalData.ThermalStatus
+ThermalStatus = log.DeviceState.ThermalStatus
 State = log.ControlsState.OpenpilotState
 HwType = log.HealthData.HwType
 LongitudinalPlanSource = log.Plan.LongitudinalPlanSource

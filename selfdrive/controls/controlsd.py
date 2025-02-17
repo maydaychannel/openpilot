@@ -31,13 +31,12 @@ NOSENSOR = "NOSENSOR" in os.environ
 
 ThermalStatus = log.DeviceState.ThermalStatus
 State = log.ControlsState.OpenpilotState
-HwType = log.HealthData.HwType
-LongitudinalPlanSource = log.Plan.LongitudinalPlanSource
-Desire = log.PathPlan.Desire
-LaneChangeState = log.PathPlan.LaneChangeState
-LaneChangeDirection = log.PathPlan.LaneChangeDirection
+PandaType = log.PandaState.PandaType
+LongitudinalPlanSource = log.LongitudinalPlan.LongitudinalPlanSource
+Desire = log.LateralPlan.Desire
+LaneChangeState = log.LateralPlan.LaneChangeState
+LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 EventName = car.CarEvent.EventName
-
 
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):

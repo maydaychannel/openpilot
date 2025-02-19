@@ -21,18 +21,9 @@ BRAKE_STOPPING_TARGET = 0.5  # apply at least this amount of brake to maintain t
 
 RATE = 100.0
 def long_control_state_trans(active, long_control_state, v_ego, v_target, v_pid,
-                             output_gb, brake_pressed, cruise_standstill, min_speed_can,
-                             dRel):
+                             output_gb, brake_pressed, cruise_standstill, min_speed_can):
   """Update longitudinal control state machine"""
   stopping_target_speed = min_speed_can + STOPPING_TARGET_SPEED_OFFSET
-#  stopping_condition = (v_ego < 3.0) or \    #This doesn't work, itll stop but starting is not so good
-#  stopping_condition = (v_ego < 2.0 and cruise_standstill) or \
-#  stopping_condition = (dRel < 2.0 and lead_car and v_ego < 10) or \
-#                       (v_ego < STOPPING_EGO_SPEED and
-#                        ((v_pid < stopping_target_speed and v_target < stopping_target_speed) or
-#                         brake_pressed))
-  stopping_condition = v_target < 0.12
-  
   starting_condition = v_target > STARTING_TARGET_SPEED and not cruise_standstill
 
   if not active:
@@ -92,24 +83,17 @@ class LongControl():
     gas_max = interp(CS.vEgo, CP.gasMaxBP, CP.gasMaxV)
     brake_max = interp(CS.vEgo, CP.brakeMaxBP, CP.brakeMaxV)
 
-    if self.op_params.get('dynamic_gas'):
-      gas_max, brake_max, dRel = self.dynamic_gas.update(CS, extras)
-
     # Update state machine
     output_gb = self.last_output_gb
     self.long_control_state = long_control_state_trans(active, self.long_control_state, CS.vEgo,
                                                        v_target_future, self.v_pid, output_gb,
-                                                       CS.brakePressed, CS.cruiseState.standstill, CP.minSpeedCan, dRel)
+                                                       CS.brakePressed, CS.cruiseState.standstill, CP.minSpeedCan)
 
     v_ego_pid = max(CS.vEgo, CP.minSpeedCan)  # Without this we get jumps, CAN bus reports 0 when speed < 0.3
 
     if self.long_control_state == LongCtrlState.off or CS.gasPressed:
       self.reset(v_ego_pid)
       output_gb = 0.
-      self.rst = 0
-      self.count = 0
-      self.accel_limiter = 0
-
     # tracking objects and driving
     elif self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target
@@ -121,7 +105,7 @@ class LongControl():
       prevent_overshoot = not CP.stoppingControl and CS.vEgo < 1.5 and v_target_future < 0.7
       deadzone = interp(v_ego_pid, CP.longitudinalTuning.deadzoneBP, CP.longitudinalTuning.deadzoneV)
 
-      output_gb = self.pid.update(self.v_pid, v_ego_pid, speed=v_ego_pid, deadzone=deadzone, feedforward=a_target, freeze_integrator=prevent_overshoot, lead=0)
+      output_gb = self.pid.update(self.v_pid, v_ego_pid, speed=v_ego_pid, deadzone=deadzone, feedforward=a_target, freeze_integrator=prevent_overshoot)
 
       gb_limit = interp(CS.vEgo, GdMAX_V, GdMAX_OUT)
       

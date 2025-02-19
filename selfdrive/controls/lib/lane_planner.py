@@ -7,7 +7,6 @@ from common.op_params import opParams
 TRAJECTORY_SIZE = 33
 # camera offset is meters from center car to camera
 STANDARD_CAMERA_OFFSET = 0.06  # do NOT change this. edit with opEdit
-CAMERA_OFFSET = 0.06
 # if EON:
 #   CAMERA_OFFSET = 0.06
 # elif TICI:

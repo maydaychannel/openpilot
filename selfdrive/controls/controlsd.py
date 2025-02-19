@@ -45,16 +45,6 @@ LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 EventName = car.CarEvent.EventName
 
-
-def log_fingerprint(candidate, timeout=15):
-  try:
-    requests.get('https://sentry.io', timeout=timeout)
-    client.captureMessage("fingerprinted {}".format(candidate), level='info')
-    return
-  except:
-    pass
-
-
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(3, Priority.CTRL_HIGH)
@@ -93,7 +83,6 @@ class Controls:
     get_one_can(self.can_sock)
 
     self.CI, self.CP, candidate = get_car(self.can_sock, self.pm.sock['sendcan'], has_relay)
-    threading.Thread(target=log_fingerprint, args=[candidate]).start()
 
     # read params
     params = Params()

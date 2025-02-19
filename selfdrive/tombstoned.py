@@ -31,6 +31,17 @@ def safe_fn(s):
   return "".join(c for c in s if c.isalnum() or c in extra).rstrip()
 
 
+def sentry_report(client, fn, message, contents):
+  cloudlog.error({'tombstone': message})
+  client.captureMessage(
+    message=message,
+    sdk={'name': 'tombstoned', 'version': '0'},
+    extra={
+      'tombstone_fn': fn,
+      'tombstone': contents
+    },
+  )
+
 def clear_apport_folder():
   for f in glob.glob(APPORT_DIR + '*'):
     try:
@@ -86,6 +97,8 @@ def report_tombstone_android(fn, client):
   fault_idx = message.find(', fault addr')
   if fault_idx >= 0:
     message = message[:fault_idx]
+
+  sentry_report(client, fn, message, contents)
 
 
 def report_tombstone_apport(fn, client):
@@ -148,6 +161,8 @@ def report_tombstone_apport(fn, client):
 
   contents = stacktrace + "\n\n" + contents
   message = message + " - " + crash_function
+  sentry_report(client, fn, message, contents)
+
   # Copy crashlog to upload folder
   clean_path = path.replace('/', '_')
   date = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
@@ -175,6 +190,10 @@ def main():
     'origin': origin,
     'branch': branch
   }
+  client = Client('https://d3b175702f62402c91ade04d1c547e68:b20d68c813c74f63a7cdf9c4039d8f56@sentry.io/157615',
+                  install_sys_hook=False, transport=HTTPTransport, release=version, tags=tags, string_max_length=10000)
+
+  client.user_context({'id': os.environ.get('DONGLE_ID')})
   while True:
     now_tombstones = set(get_tombstones())
 

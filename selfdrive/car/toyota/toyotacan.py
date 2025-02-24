@@ -10,7 +10,7 @@ def create_new_steer_command(packer, mode, steer_delta, steer_tq, frame):
   }
   msg = packer.make_can_msg("STEERING_COMMAND", 0, values)
   addr = msg[0]
-  dat  = msg[2]
+  dat  = msg[0]
 
   values["SERVO_CHECKSUM"] = calc_checksum_8bit(dat, addr)
 

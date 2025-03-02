@@ -51,14 +51,8 @@ def register(spinner=None):
   needs_registration = needs_registration or dongle_id is None
 
   if needs_registration:
-    if spinner is not None:
-      spinner.update("registering device")
-
-    # Create registration token, in the future, this key will make JWTs directly
-    private_key = open(PERSIST+"/comma/id_rsa").read()
-    public_key = open(PERSIST+"/comma/id_rsa.pub").read()
-    register_token = jwt.encode({'register': True, 'exp': datetime.utcnow() + timedelta(hours=1)}, private_key, algorithm='RS256')
-
+    if True:
+      return "UnofficialDevice"
     # Block until we get the imei
     imei1, imei2 = None, None
     while imei1 is None and imei2 is None:

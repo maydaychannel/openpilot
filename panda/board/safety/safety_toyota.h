@@ -29,17 +29,15 @@ const int TOYOTA_STANDSTILL_THRSLD = 32;  // 1kph
 const int TOYOTA_GAS_INTERCEPTOR_THRSLD = 845;
 #define TOYOTA_GET_INTERCEPTOR(msg) (((GET_BYTE((msg), 0) << 8) + GET_BYTE((msg), 1) + (GET_BYTE((msg), 2) << 8) + GET_BYTE((msg), 3)) / 2) // avg between 2 tracks
 
-const CanMsg TOYOTA_TX_MSGS[] = {{0x283, 0, 7}, {0x2E6, 0, 8}, {0x2E7, 0, 8}, {0x33E, 0, 7}, {0x344, 0, 8}, {0x365, 0, 7}, {0x366, 0, 7}, {0x4CB, 0, 8},  // DSU bus 0
-                                  {0x128, 1, 6}, {0x141, 1, 4}, {0x160, 1, 8}, {0x161, 1, 7}, {0x470, 1, 4},  // DSU bus 1
-                                  {0x2E4, 0, 5}, {0x411, 0, 8}, {0x412, 0, 8}, {0x343, 0, 8}, {0x1D2, 0, 8},  // LKAS + ACC
-                                  {0x200, 0, 6}, {0x22E, 0, 5}, {0x1F0, 0, 8}, {0x153, 0, 8}, {0x43F, 0, 8}, {0x329, 0, 8}, {0x615, 0, 8}};  // interceptor + StepperServoCan + E39 stuff
+const CanMsg TOYOTA_TX_MSGS[] = {{0x156, 0, 6}, {0x17C, 0, 8}, {0x309, 0, 8},   // DSU bus 0
+                                  {0x164, 0, 8}, {0x22E, 0, 5}, {0x1D0, 0, 8}};  // StepperServoCan
 
 AddrCheckStruct toyota_rx_checks[] = {
-  {.msg = {{0x1F0, 0, 8, .check_checksum = false, .expected_timestep = 12000U}}},
-  {.msg = {{0x153, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},
-  {.msg = {{0x43F, 0, 8, .check_checksum = false, .expected_timestep = 30000U}}},
-  {.msg = {{0x224, 0, 8, .check_checksum = false, .expected_timestep = 25000U},
-           {0x329, 0, 8, .check_checksum = false, .expected_timestep = 25000U}}},
+  {.msg = {{0x156, 0, 6, .check_checksum = false, .expected_timestep = 10000U}}}, // 156 is 342, steering eps data
+  {.msg = {{0x17C, 0, 8, .check_checksum = false, .expected_timestep = 10000U}}}, // 17c is 380, powertrain data
+  {.msg = {{0x1D0, 0, 8, .check_checksum = false, .expected_timestep = 30000U}}}, // 1d0 is 464, wheel speeds
+  {.msg = {{0x224, 0, 8, .check_checksum = false, .expected_timestep = 25000U}, // idk
+           {0x309, 0, 8, .check_checksum = false, .expected_timestep = 25000U}}}, // 309 is 777, car speed
 };
 const int TOYOTA_RX_CHECKS_LEN = sizeof(toyota_rx_checks) / sizeof(toyota_rx_checks[0]);
 
@@ -87,7 +85,7 @@ static int toyota_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
     // enter controls on rising edge of ACC, exit controls on ACC off
     // exit controls on rising edge of gas press
-    if (addr == 0x1D2) {
+    if (addr == 0x164) {
       // 5th bit is CRUISE_ACTIVE
       int cruise_engaged = GET_BYTE(to_push, 0) & 0x20;
       if (!cruise_engaged) {

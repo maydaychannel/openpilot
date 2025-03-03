@@ -31,14 +31,14 @@ class CarState(CarStateBase):
     ret.doorOpen = False
     ret.seatbeltUnlatched = False
 
-    ret.brakePressed = cp.vl["PCM_CRUISE"]['BRK_ST_OP'] != 0
-    ret.brakeLights = bool(cp.vl["DME_2"]['BRAKE_LIGHT_SIGNAL'] or ret.brakePressed)
+    ret.brakePressed = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH'] != 0
+    ret.brakeLights = bool(cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH'] or ret.brakePressed)
     if self.CP.enableGasInterceptor:
       ret.gas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS'] + cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS2']) / 2.
       ret.gasPressed = ret.gas > 15
     else:
-      ret.gas = cp.vl["DME_2"]['GAS_PEDAL']
-      ret.gasPressed = cp.vl["DME_2"]['GAS_PEDAL'] > 0.05
+      ret.gas = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
+      ret.gasPressed = cp.vl["POWERTRAIN_DATA"]['GAS_PRESSED'] > 0.05
 
     ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEEDS"]['WHEEL_SPEED_FL'] * CV.KPH_TO_MS
     ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEEDS"]['WHEEL_SPEED_FR'] * CV.KPH_TO_MS
@@ -48,36 +48,11 @@ class CarState(CarStateBase):
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
 
     ret.standstill = ret.vEgoRaw < 0.01    #Changed this from 0.001 to 0.1 to 0.01 bc longcontrol.py uses this to detect when car is stopped
-
-    # Some newer models have a more accurate angle measurement in the TORQUE_SENSOR message. Use if non-zero
-#    if abs(cp.vl["STEER_TORQUE_SENSOR"]['STEER_ANGLE']) > 1e-3:
-#      self.accurate_steer_angle_seen = True
-#
-#    if self.accurate_steer_angle_seen:
-#      if self.CP.hasZss:
-#        ret.steeringAngleDeg = cp.vl["SECONDARY_STEER_ANGLE"]['ZORRO_STEER'] - self.angle_offset
-#      else:
-#        ret.steeringAngleDegSSC = cp.vl["STEERING_STATUS"]['STEERING_ANGLE'] - self.angle_offset
-#      if self.needs_angle_offset:
-##        angle_wheel = cp.vl["SZL_1"]['STEERING_ANGLE']
-#        if cp.vl["SZL_1"]['ANGLE_DIRECTION'] == 0:
-#          angle_wheel = (cp.vl["SZL_1"]['STEERING_ANGLE'])
-#        else:
-#          angle_wheel = -(cp.vl["SZL_1"]['STEERING_ANGLE'])
-#        if abs(angle_wheel) > 1e-3:
-#          self.needs_angle_offset = False
-#          self.angle_offset = ret.steeringAngleDegSSC - angle_wheel
-
     if self.accurate_steer_angle_seen:
-      if self.CP.hasZss:
-        ret.steeringAngleDeg = cp.vl["SECONDARY_STEER_ANGLE"]['ZORRO_STEER'] - self.angle_offset
       # else:
       #   ret.steeringAngleDegSSC = cp.vl["STEERING_STATUS"]['STEERING_ANGLE'] - self.angle_offset
       if self.needs_angle_offset:
-        if cp.vl["SZL_1"]['ANGLE_DIRECTION'] == 0:
-          angle_wheel = (cp.vl["SZL_1"]['STEERING_ANGLE'])
-        else:
-          angle_wheel = -(cp.vl["SZL_1"]['STEERING_ANGLE'])
+        angle_wheel = (cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE'])
         if abs(angle_wheel) > 1e-3:
           self.needs_angle_offset = False
           ret.steeringAngleDeg = angle_wheel
@@ -87,33 +62,8 @@ class CarState(CarStateBase):
         ret.steeringAngleDegSSC = cp.vl["STEERING_STATUS"]['STEERING_ANGLE'] - self.angle_offset
         if abs(ret.steeringAngleDeg - ret.steeringAngleDegSSC) < 0.1:
           self.steeringAngle_aligned = True
-        ## Calculate the error (difference) between the two sensor readings
-        #ret.steeringAngleDegError = (ret.steeringAngleDegSSC * 0.96) -  ret.steeringAngleDeg  
-
-        ## Track the minimum and maximum error values
-        #if abs(ret.steeringAngleDeg) < 90:
-        #  self.max_error = max(self.max_error, ret.steeringAngleDegError)
-        #  self.min_error = min(self.min_error, ret.steeringAngleDegError)
-
-        #ret.steeringAngleDegDivergence = self.max_error - self.min_error
-
-
-    if self.CP.carFingerprint == CAR.OLD_CAR: # Steering angle sensor is code differently on BMW
-      if cp.vl["SZL_1"]['ANGLE_DIRECTION'] == 0:
-        ret.steeringAngleDeg = (cp.vl["SZL_1"]['STEERING_ANGLE'])
-      else:
-       ret.steeringAngleDeg = -(cp.vl["SZL_1"]['STEERING_ANGLE'])
-       #ret.steeringAngle = -(cp.vl["STEER_ANGLE_SENSOR"]['STEER_ANGLE'] + cp.vl["STEER_ANGLE_SENSOR"]['STEER_FRACTION'])
-    else:
-      ret.steeringAngleDeg = cp.vl["STEER_ANGLE_SENSOR"]['STEER_ANGLE'] + cp.vl["STEER_ANGLE_SENSOR"]['STEER_FRACTION']
-
-    if self.CP.carFingerprint == CAR.OLD_CAR: # Steering rate sensor is code differently on BMW
-      if cp.vl["SZL_1"]['VELOCITY_DIRECTION'] == 0:
-        ret.steeringRateDeg = (cp.vl["SZL_1"]['STEERING_VELOCITY'])
-      else:
-        ret.steeringRateDeg = -(cp.vl["SZL_1"]['STEERING_VELOCITY'])
-    else:
-      ret.steeringRateDeg = cp.vl["STEER_ANGLE_SENSOR"]['STEER_RATE']
+    ret.steeringAngleDeg = cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE']
+    ret.steeringRateDeg = cp.vl["STEERRING_EPS_DATA"]['STEER_ANGLE_RATE']
 
     if self.steeringAngle_aligned:
       # Calculate the error (difference) between the two sensor readings
@@ -126,13 +76,11 @@ class CarState(CarStateBase):
 
       ret.steeringAngleDegDivergence = self.max_error - self.min_error
 
-
-    can_gear = int(cp.vl["AGS_1"]['GEAR_SELECTOR'])
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
-    ret.leftBlinker = cp.vl["IKE_2"]['BLINKERS'] == 1
-    ret.rightBlinker = cp.vl["IKE_2"]['BLINKERS'] == 2
-
-    # ret.steeringTorque = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_DRIVER']
+    self.pcm_acc_status = cp.vl["CRUISE_STATUS"]['CRUISE_ON']
+    #can_gear = int(cp.vl["AGS_1"]['GEAR_SELECTOR'])
+    #ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    ret.leftBlinker = cp.vl['SCM_FEEDBACK']["LEFT_BLINKER"] == 1
+    ret.rightBlinker = cp.vl['SCM_FEEDBACK']["RIGHT_BLINKER"] == 1
 
     # emulate driver steering torque - allows lane change assist on blinker hold
     ret.steeringPressed = ret.gasPressed # E-series doesn't have torque sensor, so lightly pressing the gas indicates driver intention
@@ -144,45 +92,27 @@ class CarState(CarStateBase):
       ret.steeringTorque = 0
 
     ret.steeringTorqueEps = cp.vl["STEERING_STATUS"]['STEERING_TORQUE']
-    # we could use the override bit from dbc, but it's triggered at too high torque values
-    # ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
-    #ret.steerWarning = cp.vl["EPS_STATUS"]['LKA_STATE'] not in [1, 5]
-    #ret.steerWarning = self.CP.carFingerprint not in OLD_CAR and cp.vl["EPS_STATUS"]['LKA_STATE'] not in [1, 5]
     ret.steerWarning = False
-
-    if self.CP.carFingerprint == CAR.LEXUS_IS:
-      ret.cruiseState.available = cp.vl["DSU_CRUISE"]['MAIN_ON'] != 0
-      ret.cruiseState.speed = cp.vl["DSU_CRUISE"]['SET_SPEED'] * CV.KPH_TO_MS
-      self.low_speed_lockout = False
-    else:
-      ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]['MAIN_ON'] != 0
-      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]['SET_SPEED'] * CV.KPH_TO_MS
-      self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]['LOW_SPEED_LOCKOUT'] == 2
-    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    #ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]['MAIN_ON'] != 0
+    #ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]['SET_SPEED'] * CV.KPH_TO_MS
+    #self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]['LOW_SPEED_LOCKOUT'] == 2
+    #self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
     if self.CP.carFingerprint in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor:
       # ignore standstill in hybrid vehicles, since pcm allows to restart without
       # receiving any special command. Also if interceptor is detected
       ret.cruiseState.standstill = False
     else:
       ret.cruiseState.standstill = self.pcm_acc_status == 7
-    ret.cruiseState.enabled = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
-    ret.cruiseState.nonAdaptive = cp.vl["PCM_CRUISE"]['CRUISE_STATE'] in [1, 2, 3, 4, 5, 6]
+    ret.cruiseState.enabled = bool(cp.vl["CRUISE_STATUS"]['CRUISE_ON'])
+    #ret.cruiseState.nonAdaptive = cp.vl["PCM_CRUISE"]['CRUISE_STATE'] in [1, 2, 3, 4, 5, 6]
 
-    if self.CP.carFingerprint == CAR.PRIUS:
-      ret.genericToggle = cp.vl["AUTOPARK_STATUS"]['STATE'] != 0
-    else:
-      ret.genericToggle = bool(cp.vl["LIGHT_STALK"]['AUTO_HIGH_BEAM'])
     ret.stockAeb = bool(cp_cam.vl["PRE_COLLISION"]["PRECOLLISION_ACTIVE"] and cp_cam.vl["PRE_COLLISION"]["FORCE"] < -1e-5)
 
-    ret.espDisabled = cp.vl["DSC_1"]['DSC_OFF'] != 0
+    ret.espDisabled = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH'] != 0
     # 2 is standby, 10 is active. TODO: check that everything else is really a faulty state
-    self.steer_state = cp.vl["EPS_STATUS"]['LKA_STATE']
+    self.steer_state = 2
 
     ret.epsDisabled = (True if ret.genericToggle == 0 else False)
-
-    if self.CP.carFingerprint in TSS2_CAR:
-      ret.leftBlindspot = (cp.vl["BSM"]['L_ADJACENT'] == 1) or (cp.vl["BSM"]['L_APPROACHING'] == 1)
-      ret.rightBlindspot = (cp.vl["BSM"]['R_ADJACENT'] == 1) or (cp.vl["BSM"]['R_APPROACHING'] == 1)
 
     return ret
 
@@ -191,75 +121,27 @@ class CarState(CarStateBase):
     
     signals = [
       # sig_name, sig_address, default
-      ("STEERING_ANGLE", "SZL_1", 0),     #Imported from BMW
-      ("GEAR_SELECTOR", "AGS_1", 0),      #Imported from BMW
-      ("GEAR", "AGS_1", 0),      #Imported from BMW
-      ("BRAKE_LIGHT_SIGNAL", "DSC_1", 0),     #Imported from BMW
-      ("GAS_PEDAL", "DME_2", 0),      #Imported from BMW
-      ("CRUISE_I_O", "DME_2", 0),
-      ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),      #Imported from BMW
-      ("WHEEL_SPEED_FR", "WHEEL_SPEEDS", 0),      #Imported from BMW
-      ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),      #Imported from BMW
-      ("WHEEL_SPEED_RR", "WHEEL_SPEEDS", 0),      #Imported from BMW
-      ("DOOR_OPEN_FL", "IKE_2", 1),     #Imported from BMW
-      ("DOOR_OPEN_FR", "IKE_2", 1),     #Imported from BMW
-      ("DOOR_OPEN_RL", "IKE_2", 1),     #Imported from BMW
-      ("DOOR_OPEN_RR", "IKE_2", 1),     #Imported from BMW
-      ("SEATBELT_DRIVER_UNLATCHED", "IKE_2", 1),      #Imported from BMW
-      ("DSC_OFF", "DSC_1", 1),      #Imported from BMW
-      ("STEER_FRACTION", "STEER_ANGLE_SENSOR", 0),      #Unneccasary?
-      ("STEERING_VELOCITY", "SZL_1", 0),      #Imported from BMW
-      ("ANGLE_DIRECTION", "SZL_1", 0),      #Imported from BMW
-      ("VELOCITY_DIRECTION", "SZL_1", 0),     #Imported from BMW
-      ("CRUISE_ACTIVE", "PCM_CRUISE", 0),
-      ("CRUISE_STATE", "PCM_CRUISE", 0),
-      ("BRK_ST_OP", "PCM_CRUISE", 0),
-      ("GAS_RELEASED", "PCM_CRUISE", 1),      #Check this OUT is it neccessary anymore because made it different above code!!!
-      ("RESUME_BTN", "DME_2", 0),     #Imported from BMW
-      ("STEER_TORQUE_DRIVER", "STEER_TORQUE_SENSOR", 0),
+      ("STEER_ANGLE", "STEERING_EPS_DATA", 0),
+      ("STEER_ANGLE_RATE", "STEERING_EPS_DATA", 0),
+      ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),
+      ("WHEEL_SPEED_FR", "WHEEL_SPEEDS", 0),
+      ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),
+      ("WHEEL_SPEED_RR", "WHEEL_SPEEDS", 0),
+      ("BRAKE_PRESSED", "POWERTRAIN_DATA", 0),
+      ("LEFT_BLINKER", "SCM_FEEDBACK", 0),
+      ("RIGHT_BLINKER", "SCM_FEEDBACK", 0),
       ("STEERING_TORQUE", "STEERING_STATUS", 0),
       ("STEERING_ANGLE", "STEERING_STATUS", 0),
-      ("STEER_ANGLE", "STEER_TORQUE_SENSOR", 0),
-      ("BLINKERS", "IKE_2", 0),   # 0 is no blinkers, Imported from BMW
-      ("LKA_STATE", "EPS_STATUS", 0),
-      ("BRAKE_LIGHT_SIGNAL", "DME_2", 0),      #Imported from BMW
-      ("AUTO_HIGH_BEAM", "LIGHT_STALK", 0),
-      ("ACCEL_CMD", "ACC_CONTROL", 0),
+      ("GAS PRESSED", "POWERTRAIN_DATA", 0),
+      ("CRUISE_ON", "CRUISE_STATUS", 0)
     ]
 
     checks = [
-        ("DSC_1", 40),
-        ("DME_2", 33),
-        ("WHEEL_SPEEDS", 80),
-        ("IKE_2", 33)
+      ("WHEEL_SPEEDS", 50),
+      ("POWERTRAIN_DATA", 100),
+      ("STEERING_EPS_DATA", 100)
     ]
 
-    if CP.carFingerprint == CAR.LEXUS_IS:
-      signals.append(("MAIN_ON", "DSU_CRUISE", 0))
-      signals.append(("SET_SPEED", "DSU_CRUISE", 0))
-      checks.append(("DSU_CRUISE", 5))
-    else:
-      signals.append(("MAIN_ON", "PCM_CRUISE_2", 0))
-      signals.append(("SET_SPEED", "PCM_CRUISE_2", 0))
-      signals.append(("LOW_SPEED_LOCKOUT", "PCM_CRUISE_2", 0))
-      checks.append(("PCM_CRUISE_2", 33))
-
-    if CP.carFingerprint == CAR.PRIUS:
-      signals += [("STATE", "AUTOPARK_STATUS", 0)]
-    if CP.hasZss:
-      signals += [("ZORRO_STEER", "SECONDARY_STEER_ANGLE", 0)]
-
-    # add gas interceptor reading if we are using it
-    if CP.enableGasInterceptor:
-      signals.append(("INTERCEPTOR_GAS", "GAS_SENSOR", 0))
-      signals.append(("INTERCEPTOR_GAS2", "GAS_SENSOR", 0))
-      checks.append(("GAS_SENSOR", 50))
-
-    if CP.carFingerprint in TSS2_CAR:
-      signals += [("L_ADJACENT", "BSM", 0)]
-      signals += [("L_APPROACHING", "BSM", 0)]
-      signals += [("R_ADJACENT", "BSM", 0)]
-      signals += [("R_APPROACHING", "BSM", 0)]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 
@@ -267,13 +149,11 @@ class CarState(CarStateBase):
   def get_cam_can_parser(CP):
 
     signals = [
-      ("FORCE", "PRE_COLLISION", 0),
-      ("PRECOLLISION_ACTIVE", "PRE_COLLISION", 0)
     ]
 
     # use steering message to check if panda is connected to frc
     checks = [
-      ("STEERING_LKA", 42)
+      #("STEERING_STATUS", 100),
     ]
 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)

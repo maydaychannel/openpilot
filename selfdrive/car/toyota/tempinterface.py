@@ -9,7 +9,6 @@ from common.op_params import opParams
 
 EventName = car.CarEvent.EventName
 
-
 # certian driver intervention can be distinguished from road disturbance by estimating limits for natural motion due to centering
 def detect_stepper_override(steerCmd, steerAct, vEgo, centering_ceoff, SteerFrictionTq):
   # when steering released (or lost steps), what angle will it return to
@@ -48,10 +47,10 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "toyota"
     ret.safetyModel = car.CarParams.SafetyModel.allOutput
 
-    ret.steerActuatorDelay = 0.0  # BMW delay (original 0.15)
+    ret.steerActuatorDelay = 0.4  # BMW delay (dzids original 0.15)
     ret.steerLimitTimer = 0.4
     ret.hasZss = 0x23 in fingerprint[0]  # Detect whether car has accurate ZSS
-    ret.steerRateCost = 0.35 if ret.hasZss else 1.0
+    ret.steerRateCost = 0.5 if ret.hasZss else 1.0
 
     # Improved longitudinal tune
     if candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.RAV4_TSS2, CAR.RAV4H_TSS2]:
@@ -137,7 +136,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.newKfTuned = True
 
     elif candidate == CAR.OLD_CAR:
-      stop_and_go = False
+      stop_and_go = True
       ret.safetyParam = 100
       ret.steerControlType = car.CarParams.SteerControlType.angle
       ret.wheelbase = 2.7   # civic
@@ -163,13 +162,13 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 1]]     # First test
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.003], [0.6, .8]]     # Test halfish of kpV
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.001], [0.7, .7]]     # Test halfish of kpV
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.01], [0.5, 1]]    # Test non-zero intergale
-      ret.lateralTuning.pid.kf = 0.0002
+      ret.lateralTuning.pid.kf = 0.00003
       ret.steerMaxBP = [0.]
       ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
-
-
+        
+        
       # ret.lateralTuning.init('lqr')
       # ret.lateralTuning.lqr.scale = 1500.0
       # ret.lateralTuning.lqr.ki = 0.07
@@ -180,8 +179,6 @@ class CarInterface(CarInterfaceBase):
       # ret.lateralTuning.lqr.k = [-110.73572306, 451.22718255]
       # ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
       # ret.lateralTuning.lqr.dcGain = 0.002237852961363602
-
-      ret.radarTimeStep = 0.05;  # time delta between radar updates, 20Hz is very standard
 
     elif candidate == CAR.LEXUS_RX:
       stop_and_go = True
@@ -440,7 +437,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
       ret.lateralTuning.lqr.dcGain = 0.002237852961363602
 
-    ret.centerToFront = ret.wheelbase * 0.47    # [m] distance from center of mass to front axle, this is 540iA tune, weight distribution is ~52-53/48-47
+    ret.centerToFront = ret.wheelbase * 0.44
 
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase

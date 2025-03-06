@@ -22,8 +22,9 @@ class CarInterface(CarInterfaceBase):
     # Most Hyundai car ports are community features for now
     ret.communityFeature = candidate not in [CAR.SONATA, CAR.PALISADE]
 
-    ret.steerActuatorDelay = 0.1  # Default delay
-    ret.steerRateCost = 0.5
+    # i30 GD has a 0.1 degree APS accuracy
+    ret.steerActuatorDelay = 0.2  # Original delay 0.1
+    ret.steerRateCost = 1.       # Original cost 0.5
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 1.
 
@@ -126,6 +127,43 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
 
+    ###################
+    #### I30 2014  ####
+    ###################
+    elif candidate == CAR.I30:
+      #stop_and_go = False
+      ret.safetyParam = 100
+      ret.steerControlType = car.CarParams.SteerControlType.angle
+      ret.wheelbase = 2.650   # This is updated for i30
+      ret.steerRatio = 15.3   # This is updated for i30
+      tire_stiffness_factor = 0.385   # Copied from Elantra GT
+      ret.mass = 1193   # This is updated for i30
+      #ret.longitudinalTuning.kpBP = [0., 15., 22.]	# Try to solve longitudinal PID controller interpolation out of bounds issue with commenting these out
+      #ret.longitudinalTuning.kiBP = [0., 15., 22.]
+      #ret.gasMaxBP = [0., 5., 12., 25.]
+      #ret.gasMaxV = [0.5, 0.6, 0.8, 1.0]
+      #+      ret.gasMaxV = [0.1, 0.4, 0.8]
+
+      #ret.longitudinalTuning.deadzoneBP = [0.]
+      #ret.longitudinalTuning.deadzoneV = [0.]
+
+      ret.enableGasInterceptor = False # My implementation does not use GasInterceptor at least yet
+
+      if ret.enableGasInterceptor:
+        ret.longitudinalTuning.kpV = [0.3, 0.6, 0.7]
+        ret.longitudinalTuning.kiV = [0.2, 0.35, 0.5]
+
+      ret.lateralTuning.init('pid')
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # [20, 108] km/h
+      # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
+      # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.001], [0.8, 1.2]]     # Original with dzid FF
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.005], [0.2, 0.25]]    # Test
+      ret.lateralTuning.pid.kf = 0.0007
+      ret.steerMaxBP = [0.]
+      #ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
+      ret.maxSteeringAngleDeg = 500   # This is stupid amount, but I don't know why it should be limited either
+      ret.radarTimeStep = 0.05;  # time delta between radar updates, 20Hz is very standard
+
     # Kia
     elif candidate == CAR.KIA_SORENTO:
       ret.lateralTuning.pid.kf = 0.00005
@@ -212,7 +250,8 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront,
                                                                          tire_stiffness_factor=tire_stiffness_factor)
 
-    ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, Ecu.fwdCamera) or has_relay
+    # Hardcode to enable camera to I30
+    ret.enableCamera = (candidate == CAR.I30) or is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, Ecu.fwdCamera) or has_relay
 
     return ret
 

@@ -105,7 +105,7 @@ class RadarD():
     self.ready = False
 
     self.vision_params = VisionKalmanParams(radar_ts)
-    # self.visionVA = [0.0, 0.0, 0.0]
+    self.leadK = [0.0, 0.0, 0.0]
     self.visionKalman = VisionKalman(0.0, self.v_ego, self.vision_params)
 
   def update(self, sm, rr, enable_lead):
@@ -175,17 +175,18 @@ class RadarD():
     radarState.radarErrors = list(rr.errors)
     radarState.carStateMonoTime = sm.logMonoTime['carState']
 
-    if sm['modelV2'].leads[0].prob > .5:
-      #self.visionVA = self.visionKalman.update(sm['modelV2'].leads[0].xyva[2], self.v_ego)
+    # Try to fix random out of bounds error; this happens when leads is empty (i.e., has no elements), attempting to access leads[0]
+    if len(sm['modelV2'].leads) > 0 and sm['modelV2'].leads[0].prob > .5:
+    #if sm['modelV2'].leads[0].prob > .5:	# Original statement
       #self.visionKalman.update(sm['modelV2'].leads[0].xyva[2], self.v_ego)
-      leadK = self.visionKalman.update(sm['modelV2'].leads[0].xyva[2], self.v_ego)
-    else:
-      self.visionKalman = VisionKalman(sm['modelV2'].leads[0].xyva[2], self.v_ego, self.vision_params)
+      self.leadK = self.visionKalman.update(sm['modelV2'].leads[0].xyva[2], self.v_ego)
+#    else:
+#      self.visionKalman = VisionKalman(sm['modelV2'].leads[0].xyva[2], self.v_ego, self.vision_params)
 
     if enable_lead:
       if len(sm['modelV2'].leads) > 1:
-        radarState.leadOne = get_lead(self.v_ego, self.ready, leadK, clusters, sm['modelV2'].leads[0], low_speed_override=True)
-        radarState.leadTwo = get_lead(self.v_ego, self.ready, leadK, clusters, sm['modelV2'].leads[1], low_speed_override=False)
+        radarState.leadOne = get_lead(self.v_ego, self.ready, self.leadK, clusters, sm['modelV2'].leads[0], low_speed_override=True)
+        radarState.leadTwo = get_lead(self.v_ego, self.ready, self.leadK, clusters, sm['modelV2'].leads[1], low_speed_override=False)
         #radarState.leadOne = get_lead(self.v_ego, self.ready, self.visionKalman.visionValues, clusters, sm['modelV2'].leads[0], low_speed_override=True)
         #radarState.leadTwo = get_lead(self.v_ego, self.ready, self.visionKalman.visionValues, clusters, sm['modelV2'].leads[1], low_speed_override=False)
     return dat

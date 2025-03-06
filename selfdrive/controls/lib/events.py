@@ -387,7 +387,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       "CHECK SSC ASSEMBLY",
       "SteeringDeg measurements has deverged too much!",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 1., 1., 1.),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 3., 1., 1.),
   },
 
   # ********** events only containing alerts that display while engaged **********
@@ -532,13 +532,13 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 1., 1., 1.),
   },
 
-#  EventName.steeringDegDiverged: {
-#    ET.WARNING: Alert(
-#      "TAKE CONTROL",
-#      "SteeringDeg measurements has deverged too much!",
-#      AlertStatus.userPrompt, AlertSize.mid,
-#      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 1., 1., 1.),
-#  },
+  EventName.driverIntervention: {
+    ET.WARNING: Alert(
+      "DETECTED DRIVER INTERVENTION",
+      "If deriver is not pressing the wheel, this is bug",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 2., 1., 1., creation_delay=0.6),
+  },
 
   EventName.fanMalfunction: {
     ET.PERMANENT: NormalPermanentAlert("Fan Malfunction", "Contact Support"),

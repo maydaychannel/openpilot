@@ -207,7 +207,7 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if (addr == 344) {  // 0x158
       // first 2 bytes
       vehicle_moving = GET_BYTE(to_push, 0) | GET_BYTE(to_push, 1);
-
+    }
     if (addr == 380) {    // 0x17C
       brake_pressed = (GET_BYTE((to_push), 6) & 0x20) != 0;
     }

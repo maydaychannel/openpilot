@@ -8,9 +8,6 @@ const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
 const int HYUNDAI_STANDSTILL_THRSLD = 30;  // ~1kph
 const CanMsg HYUNDAI_TX_MSGS[] = {
   {558, 2, 5}, // SSC Bus 2
-  {832, 0, 8},  // LKAS11 Bus 0
-  {1265, 0, 4}, // CLU11 Bus 0
-  {1157, 0, 4}, // LFAHDA_MFC Bus 0
   // {1056, 0, 8}, //   SCC11,  Bus 0
   // {1057, 0, 8}, //   SCC12,  Bus 0
   // {1290, 0, 8}, //   SCC13,  Bus 0
@@ -21,11 +18,10 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 // TODO: missing checksum for wheel speeds message,worst failure case is
 //       wheel speeds stuck at 0 and we don't disengage on brake press
 AddrCheckStruct hyundai_rx_checks[] = {
-  {.msg = {{0x081, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // EMS_DCT2 (129)
-  {.msg = {{0x165, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // VSM2 (357)
-  {.msg = {{0x1F1, 0, 8, .check_checksum = false, .expected_timestep = 20000U}}},                      // TCS5 (497)
-  {.msg = {{0x260, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 12000U}}},    // EMS6 (260)
-  {.msg = {{0x2B0, 0, 5, .check_checksum = true, .max_counter = 15U, .expected_timestep = 12000U}}},   // SAS1 (688)
+  {.msg = {{0x156, 0, 6, .check_checksum = false, .expected_timestep = 10000U}}}, // 156 is 342, steering eps data
+  {.msg = {{0x17C, 0, 8, .check_checksum = false, .expected_timestep = 10000U}}}, // 17c is 380, powertrain data
+  {.msg = {{0x1D0, 0, 8, .check_checksum = false, .expected_timestep = 30000U}}}, // 1d0 is 464, wheel speeds
+  {.msg = {{0x309, 0, 8, .check_checksum = false, .expected_timestep = 25000U}}}, // 309 is 777, car speed
   {.msg = {{0x22F, 2, 8, .check_checksum = false, .max_counter = 15U, .expected_timestep = 10000U}}},  // SSC (559)
 };
 const int HYUNDAI_RX_CHECK_LEN = sizeof(hyundai_rx_checks) / sizeof(hyundai_rx_checks[0]);
@@ -187,36 +183,33 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    if (addr == 608) {   // 0x260
-      // 3 bit from 3 byte
-      int cruise_engaged = (GET_BYTE(to_push, 3) >> 2) & 0x01;
-      if (cruise_engaged && !cruise_engaged_prev) {
-        controls_allowed = 1;
-      }
+    if (addr == 356) {  // 0x164
+      // 5th bit is CRUISE_ACTIVE
+      int cruise_engaged = GET_BYTE(to_push, 0) & 0x20;
       if (!cruise_engaged) {
         controls_allowed = 0;
       }
+      if (cruise_engaged && !cruise_engaged_prev) {
+        controls_allowed = 1;
+      }
       cruise_engaged_prev = cruise_engaged;
+
     }
 
-    if ((addr == 608) || (hyundai_legacy && (addr == 881))) {
-      if (addr == 608) {
-        gas_pressed = (GET_BYTE(to_push, 7) >> 6) != 0;   // My code was: gas_pressed = ((GET_BYTE(to_push, 7) >> 7) & 1) == 1;
-      } else {
-        gas_pressed = (((GET_BYTE(to_push, 4) & 0x7F) << 1) | GET_BYTE(to_push, 3) >> 7) != 0;
+    if (!gas_interceptor_detected) {
+      if (addr == 0x17C) {
+        gas_pressed = (GET_BYTE((to_push), 4) & 0x80) != 0;
       }
     }
 
-    // sample wheel speed, averaging opposite corners
-    if (addr == 497) {    // 0x1F1
-      int hyundai_speed = (GET_BYTES_04(to_push) >> 16) & 0xFFF;  // FL
-      hyundai_speed += (GET_BYTES_48(to_push) >> 20) & 0xFFF;  // RR
-      hyundai_speed *= 2;		// This was originally divided by 2 but this is hack for i30 12bit (vs 14bit) speed value comply with HYUNDAI_STANDSTILL_THRSLD
-      vehicle_moving = hyundai_speed > HYUNDAI_STANDSTILL_THRSLD;
-    }
 
-    if (addr == 129) {    // 0x081
-      brake_pressed = (GET_BYTE(to_push, 0) >> 7) != 0;
+    // sample wheel speed, averaging opposite corners
+    if (addr == 344) {  // 0x158
+      // first 2 bytes
+      vehicle_moving = GET_BYTE(to_push, 0) | GET_BYTE(to_push, 1);
+
+    if (addr == 380) {    // 0x17C
+      brake_pressed = (GET_BYTE((to_push), 6) & 0x20) != 0;
     }
 
     // generic_rx_checks((addr == 832));

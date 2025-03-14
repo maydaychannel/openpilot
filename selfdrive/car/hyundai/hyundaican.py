@@ -108,13 +108,6 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   return packer.make_can_msg("LKAS11", 0, values)
 
 
-def create_clu11(packer, frame, clu11, button):
-  values = clu11
-  values["CF_Clu_CruiseSwState"] = button
-  values["CF_Clu_AliveCnt1"] = frame % 0x10
-  return packer.make_can_msg("CLU11", 0, values)
-
-
 def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   values = {
     "LFA_Icon_State": 2 if enabled else 0,

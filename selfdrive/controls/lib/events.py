@@ -309,13 +309,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
   },
 
-  EventName.startupOneplus: {
-    ET.PERMANENT: Alert(
-      "WARNING: Original EON deprecated",
-      "Device will no longer update",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
-  },
 
   EventName.invalidGiraffeToyotaDEPRECATED: {
     ET.PERMANENT: Alert(
@@ -532,13 +525,13 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 1., 1., 1.),
   },
 
-  EventName.driverIntervention: {
-    ET.WARNING: Alert(
-      "DETECTED DRIVER INTERVENTION",
-      "If deriver is not pressing the wheel, this is bug",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 2., 1., 1., creation_delay=0.6),
-  },
+#  EventName.steeringDegDiverged: {
+#    ET.WARNING: Alert(
+#      "TAKE CONTROL",
+#      "SteeringDeg measurements has deverged too much!",
+#      AlertStatus.userPrompt, AlertSize.mid,
+#      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 1., 1., 1.),
+#  },
 
   EventName.fanMalfunction: {
     ET.PERMANENT: NormalPermanentAlert("Fan Malfunction", "Contact Support"),

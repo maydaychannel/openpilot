@@ -16,7 +16,7 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
 
     ret.carName = "hyundai"
-    ret.safetyModel = car.CarParams.SafetyModel.hyundai
+    ret.safetyModel = car.CarParams.SafetyModel.allOutput
     ret.radarOffCan = True
 
     # Most Hyundai car ports are community features for now
@@ -128,7 +128,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
 
     ###################
-    #### I30 2014  ####
+    #### 2007 civic  ####
     ###################
     elif candidate == CAR.I30:
       #stop_and_go = False

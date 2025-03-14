@@ -102,7 +102,7 @@ class CarState(CarStateBase):
       # receiving any special command. Also if interceptor is detected
       ret.cruiseState.standstill = False
     else:
-      ret.cruiseState.standstill = self.pcm_acc_status == 7
+      ret.cruiseState.standstill = False
     ret.cruiseState.enabled = bool(cp.vl["CRUISE_STATUS"]['CRUISE_ON'])
     #ret.cruiseState.nonAdaptive = cp.vl["PCM_CRUISE"]['CRUISE_STATE'] in [1, 2, 3, 4, 5, 6]
 
@@ -128,11 +128,9 @@ class CarState(CarStateBase):
       ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),
       ("WHEEL_SPEED_RR", "WHEEL_SPEEDS", 0),
       ("BRAKE_PRESSED", "POWERTRAIN_DATA", 0),
+      ("GAS PRESSED", "POWERTRAIN_DATA", 0),
       ("LEFT_BLINKER", "SCM_FEEDBACK", 0),
       ("RIGHT_BLINKER", "SCM_FEEDBACK", 0),
-      ("STEERING_TORQUE", "STEERING_STATUS", 0),
-      ("STEERING_ANGLE", "STEERING_STATUS", 0),
-      ("GAS PRESSED", "POWERTRAIN_DATA", 0),
       ("CRUISE_ON", "CRUISE_STATUS", 0)
     ]
 
@@ -150,10 +148,11 @@ class CarState(CarStateBase):
 
     signals = [
     ]
-
+    ("STEERING_TORQUE", "STEERING_STATUS", 0),
+    ("STEERING_ANGLE", "STEERING_STATUS", 0),
     # use steering message to check if panda is connected to frc
     checks = [
-      #("STEERING_STATUS", 100),
+      ("STEERING_STATUS", 20),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)

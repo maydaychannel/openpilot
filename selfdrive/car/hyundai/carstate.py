@@ -75,10 +75,10 @@ class CarState(CarStateBase):
 
     # TODO: Find brake pressure
     ret.brake = 0
-    ret.brakePressed = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH'] != 0
+    ret.brakePressed = cp.vl["POWERTRAIN_DATA"]['BRAKE_PRESSED'] != 0
 
     # TODO: Check this
-    ret.brakeLights = bool(cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH'] or ret.brakePressed)
+    ret.brakeLights = bool(cp.vl["POWERTRAIN_DATA"]['BRAKE_PRESSED'] or ret.brakePressed)
     ret.gas = cp.vl["POWERTRAIN_DATA"]['GAS_PRESSED']
     ret.gasPressed = cp.vl["POWERTRAIN_DATA"]['GAS_PRESSED'] > 0.05
 
@@ -112,7 +112,7 @@ class CarState(CarStateBase):
       ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),
       ("WHEEL_SPEED_RR", "WHEEL_SPEEDS", 0),
       ("BRAKE_PRESSED", "POWERTRAIN_DATA", 0),
-      ("GAS PRESSED", "POWERTRAIN_DATA", 0),
+      ("GAS_PRESSED", "POWERTRAIN_DATA", 0),
       ("LEFT_BLINKER", "SCM_FEEDBACK", 0),
       ("RIGHT_BLINKER", "SCM_FEEDBACK", 0),
       ("CRUISE_ON", "CRUISE_STATUS", 0)

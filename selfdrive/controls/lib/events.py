@@ -220,15 +220,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
   },
-
-  'dfButtonAlertSilent': {
-    ET.PERMANENT: Alert(
-      "Dynamic follow: ",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, .2, 0., 1.5),
-  },
-
+  
   'laneSpeedAlert': {
     ET.PERMANENT: Alert(
       "",

@@ -300,7 +300,17 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
   },
-
+  
+  EventName.canError: {
+     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Error: Check Connections"),
+     ET.PERMANENT: Alert(
+       "CAN Error: Check Connections",
+       "",
+       AlertStatus.normal, AlertSize.small,
+       Priority.LOW, VisualAlert.none, AudibleAlert.none, 0., 0., .2, creation_delay=1.),
+     ET.NO_ENTRY: NoEntryAlert("CAN Error: Check Connections"),
+   },
+ 
   EventName.startupNoCar: {
     ET.PERMANENT: Alert(
       "Dashcam mode for unsupported car",

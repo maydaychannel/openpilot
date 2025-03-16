@@ -194,6 +194,14 @@ def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, met
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2)
 
+def no_gps_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
+  gps_integrated = sm['pandaState'].pandaType in [log.PandaState.PandaType.uno, log.PandaState.PandaType.dos]
+  return Alert(
+    "Poor GPS reception",
+    "If sky is visible, contact support" if gps_integrated else "Check GPS antenna placement",
+    AlertStatus.normal, AlertSize.mid,
+    Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2, creation_delay=300.)
+
 def wrong_car_mode_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
   text = "Cruise Mode Disabled"
   if CP.carName == "honda":
@@ -213,6 +221,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
   },
 
+  'dfButtonAlert': {
+    ET.PERMANENT: Alert(
+      "Using profile: ",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
+  },
+
   'lsButtonAlert': {
     ET.PERMANENT: Alert(
       "Lane Speed set to: ",
@@ -220,7 +236,15 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
   },
-  
+
+  'dfButtonAlertSilent': {
+    ET.PERMANENT: Alert(
+      "Dynamic follow: ",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, .2, 0., 1.5),
+  },
+
   'laneSpeedAlert': {
     ET.PERMANENT: Alert(
       "",
@@ -258,6 +282,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       "Be ready to take over at any time",
       "Always keep hands on wheel and eyes on road",
       AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 5.),
+  },
+
+  EventName.startupMaster: {
+    ET.PERMANENT: Alert(
+      "WARNING: This SA branch is not tested",
+      "Always keep hands on wheel and eyes on road",
+      AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 5.),
   },
 
@@ -587,6 +619,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2, creation_delay=1.),
     ET.NO_ENTRY: NoEntryAlert("No Data from Device Sensors"),
+  },
+
+  EventName.noGps: {
+    ET.PERMANENT: no_gps_alert,
   },
 
   EventName.soundsUnavailable: {

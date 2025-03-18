@@ -53,7 +53,7 @@ class RadarInterface(RadarInterfaceBase):
     cpt = self.rcp.vl
     errors = []
     if not self.rcp.can_valid:
-      errors.append("canError")
+      pass
     ret.errors = errors
 
     valid = cpt["SCC11"]['ACC_ObjStatus']

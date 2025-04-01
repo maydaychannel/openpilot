@@ -120,8 +120,7 @@ class CarState(CarStateBase):
 
     checks = [
       ("WHEEL_SPEEDS", 50),
-      ("POWERTRAIN_DATA", 100),
-      ("STEERING_EPS_DATA", 100)
+      ("POWERTRAIN_DATA", 100)
     ]
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 

@@ -18,7 +18,6 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 // TODO: missing checksum for wheel speeds message,worst failure case is
 //       wheel speeds stuck at 0 and we don't disengage on brake press
 AddrCheckStruct hyundai_rx_checks[] = {
-  {.msg = {{0x156, 0, 6, .check_checksum = false, .expected_timestep = 10000U}}}, // 156 is 342, steering eps data
   {.msg = {{0x17C, 0, 8, .check_checksum = false, .expected_timestep = 10000U}}}, // 17c is 380, powertrain data
   {.msg = {{0x1D0, 0, 8, .check_checksum = false, .expected_timestep = 30000U}}}, // 1d0 is 464, wheel speeds
   {.msg = {{0x309, 0, 8, .check_checksum = false, .expected_timestep = 25000U}}}, // 309 is 777, car speed

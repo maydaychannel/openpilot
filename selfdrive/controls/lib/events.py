@@ -277,14 +277,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .1, .1, .1),
   },
 
-  EventName.startup: {
-    ET.PERMANENT: Alert(
-      "Be ready to take over at any time",
-      "Always keep hands on wheel and eyes on road",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 5.),
-  },
-
   EventName.startupNoControl: {
     ET.PERMANENT: Alert(
       "Dashcam mode",
@@ -318,13 +310,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
   },
-  EventName.startupMaster: {
-    ET.PERMANENT: Alert(
-      "WARNING: This SA branch is not tested",
-      "Always keep hands on wheel and eyes on road",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 5.),
-  }, 
+
   EventName.invalidLkasSetting: {
     ET.PERMANENT: Alert(
       "Stock LKAS is turned on",

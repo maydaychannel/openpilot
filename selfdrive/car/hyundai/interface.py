@@ -23,8 +23,8 @@ class CarInterface(CarInterfaceBase):
     ret.communityFeature = candidate not in [CAR.SONATA, CAR.PALISADE]
 
     # i30 GD has a 0.1 degree APS accuracy
-    ret.steerActuatorDelay = 0.2  # Original delay 0.1
-    ret.steerRateCost = 1.       # Original cost 0.5
+    ret.steerActuatorDelay = 0.0  
+    ret.steerRateCost = 0.35      
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 1.
 
@@ -134,10 +134,10 @@ class CarInterface(CarInterfaceBase):
       #stop_and_go = False
       ret.safetyParam = 100
       ret.steerControlType = car.CarParams.SteerControlType.angle
-      ret.wheelbase = 2.650   # This is updated for i30
-      ret.steerRatio = 15.3   # This is updated for i30
+      ret.wheelbase = 2.69  # civic
+      ret.steerRatio = 13.62   # civic
       tire_stiffness_factor = 0.385   # Copied from Elantra GT
-      ret.mass = 1193   # This is updated for i30
+      ret.mass = 1224   # This is updated for i30
       #ret.longitudinalTuning.kpBP = [0., 15., 22.]	# Try to solve longitudinal PID controller interpolation out of bounds issue with commenting these out
       #ret.longitudinalTuning.kiBP = [0., 15., 22.]
       #ret.gasMaxBP = [0., 5., 12., 25.]
@@ -157,8 +157,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # [20, 108] km/h
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.001], [0.8, 1.2]]     # Original with dzid FF
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.005], [0.2, 0.25]]    # Test
-      ret.lateralTuning.pid.kf = 0.0007
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.003], [0.6, 0.8]]    # Test
+      ret.lateralTuning.pid.kf = 0.0002
       ret.steerMaxBP = [0.]
       #ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
       ret.maxSteeringAngleDeg = 500   # This is stupid amount, but I don't know why it should be limited either

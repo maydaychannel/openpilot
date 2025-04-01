@@ -354,7 +354,7 @@ class Controls:
     # Check for CAN timeout
     if not can_strs:
       self.can_error_counter += 1
-      self.can_rcv_error = True
+      self.can_rcv_error = False
     else:
       self.can_rcv_error = False
 

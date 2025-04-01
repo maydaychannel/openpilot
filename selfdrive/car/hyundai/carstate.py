@@ -37,8 +37,8 @@ class CarState(CarStateBase):
 
     ret.standstill = ret.vEgoRaw < 0.1
 
-    ret.steeringAngleDeg = cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE']
-    ret.steeringRateDeg = cp.vl["STEERING_EPS_DATA"]['STEER_ANGLE_RATE']
+    ret.steeringAngleDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_ANGLE']
+    ret.steeringRateDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_SPEED'] * CV.REV_TO_DEG
     ret.leftBlinker = cp.vl['SCM_FEEDBACK']["LEFT_BLINKER"] == 1
     ret.rightBlinker = cp.vl['SCM_FEEDBACK']["RIGHT_BLINKER"] == 1
 
@@ -105,8 +105,8 @@ class CarState(CarStateBase):
   def get_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
-      ("STEER_ANGLE", "STEERING_EPS_DATA", 0),
-      ("STEER_ANGLE_RATE", "STEERING_EPS_DATA", 0),
+      #("STEER_ANGLE", "STEERING_EPS_DATA", 0),
+      #("STEER_ANGLE_RATE", "STEERING_EPS_DATA", 0),
       ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),
       ("WHEEL_SPEED_FR", "WHEEL_SPEEDS", 0),
       ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),
@@ -131,7 +131,8 @@ class CarState(CarStateBase):
     signals = [
       # sig_name, sig_address, default
       ("STEERING_TORQUE", "STEERING_STATUS", 0),
-      ("STEERING_ANGLE", "STEERING_STATUS", 0)
+      ("STEERING_ANGLE", "STEERING_STATUS", 0),
+      ("STEERING_SPEED", "STEERING_STATUS", 0)
     ]
 
     checks = [

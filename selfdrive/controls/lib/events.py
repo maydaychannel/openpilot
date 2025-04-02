@@ -218,7 +218,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       "Model longitudinal ",
       "Remain alert",
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 1.5),
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
   },
 
   'dfButtonAlert': {
@@ -226,7 +226,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       "Using profile: ",
       "",
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 0., 1.5),
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 0., 1.5),
   },
 
   'lsButtonAlert': {
@@ -275,6 +275,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       "",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .1, .1, .1),
+  },
+
+  EventName.startup: {
+    ET.PERMANENT: Alert(
+      "Be ready to take over at any time",
+      "Always keep hands on wheel and eyes on road",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 5.),
   },
 
   EventName.startupNoControl: {

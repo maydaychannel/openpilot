@@ -37,8 +37,8 @@ class CarState(CarStateBase):
 
     ret.standstill = ret.vEgoRaw < 0.1
 
-    ret.steeringAngleDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_ANGLE']
-    ret.steeringRateDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_SPEED'] * CV.REV_TO_DEG
+    ret.steeringAngleDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_ANGLE'] / CV.SCC_TO_DEG
+    ret.steeringRateDeg = cp_cam.vl["STEERING_STATUS"]['STEERING_SPEED'] * CV.REV_TO_DEG_S
     ret.leftBlinker = cp.vl['SCM_FEEDBACK']["LEFT_BLINKER"] == 1
     ret.rightBlinker = cp.vl['SCM_FEEDBACK']["RIGHT_BLINKER"] == 1
 

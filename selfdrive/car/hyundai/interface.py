@@ -157,8 +157,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[5.5, 30.], [5.5, 30.]]     # [20, 108] km/h
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0, 0.0], [0.5, 3]]   # Original
       # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.005, 0.001], [0.8, 1.2]]     # Original with dzid FF
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.001, 0.003], [0.1, 0.15]]    # Test
-      ret.lateralTuning.pid.kf = 0.0002
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.0008, 0.0008], [0.12, 0.16]]    # Test
+      ret.lateralTuning.pid.kf = 0.00005
       ret.steerMaxBP = [0.]
       #ret.steerMaxV = [SteerLimitParams.MAX_STEERING_TQ]
       ret.maxSteeringAngleDeg = 500   # This is stupid amount, but I don't know why it should be limited either

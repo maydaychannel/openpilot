@@ -380,8 +380,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
     ET.PERMANENT: Alert(
       "CHECK SSC ASSEMBLY",
       "SteeringDeg measurements has deverged too much!",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, 3., 1., 1.),
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 3., 1., 1.),
   },
 
   # ********** events only containing alerts that display while engaged **********

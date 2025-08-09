@@ -295,8 +295,8 @@ class Controls:
     #  self.events.add(EventName.fcw)
     # if self.sm.updated['carState']:
     #   if self.sm['carState'].steeringAngleDegDivergence > 20:
-    if CS.steeringAngleDegError > 8:
-      self.events.add(EventName.steeringDegDiverged)
+    # if CS.steeringAngleDegError > 100:
+    #  self.events.add(EventName.steeringDegDiverged)
 
   def add_stock_additions_alerts(self, CS):
     self.AM.SA_set_frame(self.sm.frame)
